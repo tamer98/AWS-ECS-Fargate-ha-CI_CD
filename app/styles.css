@@ -1,0 +1,100 @@
+
+body {
+  min-height: 100%;
+  min-width: 100%;
+  background-image: url(./assests/background.webp);
+  background-size: cover;
+  background-repeat: no-repeat; 
+}
+
+
+h1 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 50px;
+  padding-bottom: 20px;
+  color: rgba(25, 3, 3, 0.786);
+}
+
+
+.card-container {
+  display: grid;
+  justify-content: center;
+  grid-gap: 16px;
+  grid-template-columns: repeat(8, 100px);
+  grid-template-rows: repeat(4, calc(100px / 2 * 3)); /* Change to 4 rows */
+}
+  
+
+.card {
+  height: calc(100px / 2 * 3);
+  width: 100px;
+  border-radius: 10px;
+  background-color: white;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.5s ease-in-out;
+}
+  
+
+.card > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  border-radius: 10px;
+}
+
+
+.card.front {
+background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='46.5' height='46.5' patternTransform='scale(4) rotate(120)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(165,15.5%,58.2%,1)'/><path d='M27.31-2.917a5 5 0 010 5.834m-8.12 0a5 5 0 010-5.834m-4.827 7.501a10 10 0 010-9.169m17.774.001a10 10 0 010 9.169M10.181 7.36a15 15 0 01-.001-14.722m26.14 0a15 15 0 010 14.724m-9.01 36.22a5 5 0 010 5.835m-8.12 0a5 5 0 010-5.834m-4.827 7.501a10 10 0 010-9.169m17.774.001a10 10 0 010 9.169M10.181 53.86a15 15 0 01-.001-14.723m26.14 0a15 15 0 010 14.724m6.12-27.693a5 5 0 010-5.834m-4.827 7.5a10 10 0 010-9.169M33.431 30.61a15 15 0 01-.001-14.722M4.06 20.332a5 5 0 010 5.835m4.827-7.501a10 10 0 010 9.169m4.183-11.947a15 15 0 010 14.724'  stroke-linejoin='round' stroke-linecap='round' stroke-width='5' stroke='hsla(37,89.3%,67.1%,1)' fill='none'/><path d='M43.582 42.44a5 5 0 015.835 0m-7.501-4.827a10 10 0 019.169 0M39.138 33.43a15 15 0 0114.724 0m-56.781 9.01a5 5 0 015.836 0m-7.501-4.827a10 10 0 019.169 0M-7.362 33.43a15 15 0 0114.724 0M49.417 4.06a5 5 0 01-5.834 0m7.501 4.827a10 10 0 01-9.169 0m11.946 4.182a15 15 0 01-14.723.001M2.917 4.06a5 5 0 01-5.834 0m7.501 4.827a10 10 0 01-9.169 0M7.36 13.069a15 15 0 01-14.722.001m27.694 6.12a5 5 0 015.835 0m0 8.12a5 5 0 01-5.834 0m7.5 4.827a10 10 0 01-9.168 0m.001-17.774a10 10 0 019.169 0m2.776 21.956a15 15 0 01-14.723.001m0-26.14a15 15 0 0114.724 0'  stroke-linejoin='round' stroke-linecap='round' stroke-width='5' stroke='hsla(31,56.8%,92.7%,1)' fill='none'/></pattern></defs><rect width='800%' height='800%' transform='translate(0,0)' fill='url(%23a)'/></svg>");
+content: url("");
+}
+
+
+.pressed {
+    box-shadow: 0 4px 4px 0 rgb(0, 0, 0); 
+    opacity: 0.1; 
+    transform: scale(0.90); 
+}
+
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+
+#gameInfo {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 30px;
+  font-weight:bold ;
+  color: #121315d0;
+}
+
+
+#playerBanner, #scoreBanner {
+  margin: 0 15px;
+}
+
+
+.button-container {
+   width: 150px;
+   margin-left: 385px;
+   top: 85%;
+   left: 47%;
+}
+
+
+#restartButton {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color:#e9ae1b;
+  color: rgb(255, 255, 255);
+}
+
