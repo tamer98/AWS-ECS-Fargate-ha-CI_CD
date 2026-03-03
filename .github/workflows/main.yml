@@ -25,15 +25,24 @@
 #    See the documentation for each action used below for the recommended IAM policies for this IAM user,
 #    and best practices on handling the access key credentials.
 
-name: Deploy to Amazon ECS
+      
+name: MemoryCards-ECS CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.github/**'
+
+#to run ci/cd manually
+  workflow_dispatch:
+    
 
 env:
-  AWS_REGION: us-east-1                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: MY_ECR_REPOSITORY           # set this to your Amazon ECR repository name
+  AWS_REGION: ap-south-1                   # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: development/memory-cards         # set this to your Amazon ECR repository name
   ECS_SERVICE: MY_ECS_SERVICE                 # set this to your Amazon ECS service name
   ECS_CLUSTER: MY_ECS_CLUSTER                 # set this to your Amazon ECS cluster name
   ECS_TASK_DEFINITION: MY_ECS_TASK_DEFINITION # set this to the path to your Amazon ECS task definition
@@ -44,8 +53,80 @@ env:
 permissions:
   contents: read
 
+
 jobs:
-  deploy:
+  CI:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check out code and pull
+        uses: actions/checkout@v2
+
+
+      - name: install dependencies and Build the application
+        run: |
+          python -m venv venv
+          source venv/bin/activate #Sets the correct Python interpreter,correct dependencies,Updates environment variables
+          pip install -r requirements.txt
+          python app.py &
+
+      - name: wait for server to be upload
+        run: sleep 5
+
+ 
+      - name: Run tests
+        run: |
+          curl http://localhost:5000
+
+      - name: Stop application
+        run: kill -9 $(lsof -t -i :5000)
+
+
+      - name: Build Docker image
+        run: |
+          docker build -t entrytracker:latest .
+
+
+      - name: Deploy testing environment
+        run: docker compose up -d
+      
+      - name: Check running containers and existed images
+        run: |
+          docker ps -a
+          docker images
+        
+      - name: wait application to be upload
+        run: |
+          sleep 5
+          
+      - name: Run tests
+        run: |
+          curl http://localhost:5000
+
+      - name: Remove testing environment
+        run: docker compose down -v
+
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ECR_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+        
+      - name: Authenticate Docker to AWS ECR
+        run: ${{ secrets.DOCKER_AUTENTICATES_ECR_AWS }}
+        
+        
+      - name: Tag Docker image
+        run: docker tag entrytracker:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
+      - name: Push Docker image to ECR
+        run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+
+
+  CD:
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
