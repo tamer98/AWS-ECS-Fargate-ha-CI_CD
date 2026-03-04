@@ -59,71 +59,84 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Check out code and pull
-        uses: actions/checkout@v2
+    - name: Check out code and pull
+      uses: actions/checkout@v2
 
 
-      - name: install dependencies and Build the application
-        run: |
-          python -m venv venv
-          source venv/bin/activate #Sets the correct Python interpreter,correct dependencies,Updates environment variables
-          pip install -r requirements.txt
-          python app.py &
+     
+    - name: install dependencies and Build the application
+      run: |
+         npm install -g http-server
+         npx http-server
 
-      - name: wait for server to be upload
-        run: sleep 5
+    - name: wait for server to be upload
+      run: sleep 5
 
  
-      - name: Run tests
-        run: |
-          curl http://localhost:5000
+    - name: Run tests
+      run: |
+         curl http://localhost:8080
 
-      - name: Stop application
-        run: kill -9 $(lsof -t -i :5000)
-
-
-      - name: Build Docker image
-        run: |
-          docker build -t entrytracker:latest .
+    - name: Stop application
+      run: kill -9 $(lsof -t -i :8080)
 
 
-      - name: Deploy testing environment
-        run: docker compose up -d
+    - name: Build Docker image
+      run: |
+         docker build -t my-app:latest .
+
+
+    - name: Deploy testing environment
+      run: docker run --name app-con -p 80:80 my-app  
       
-      - name: Check running containers and existed images
-        run: |
-          docker ps -a
-          docker images
+    - name: Check running containers and existed images
+      run: |
+         docker ps -a
+         docker images
         
-      - name: wait application to be upload
-        run: |
-          sleep 5
+    - name: wait application to be upload
+      run: |
+         sleep 5
           
-      - name: Run tests
-        run: |
-          curl http://localhost:5000
+    - name: Run tests
+      run: |
+         curl http://localhost:80
 
-      - name: Remove testing environment
-        run: docker compose down -v
+    - name: Remove testing environment
+      run: |
+         docker stop app-con
+         docker rm app-con
 
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+         aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
+         aws-secret-access-key: ${{ secrets.ECR_SECRET_KEY }}
+         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.ECR_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.ECR_SECRET_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image #need to check it
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: v${{ github.run_number }}
+      run: | #-----------------------------
+        # Build a docker container and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
         
-      - name: Authenticate Docker to AWS ECR
-        run: ${{ secrets.DOCKER_AUTENTICATES_ECR_AWS }}
-        
-        
-      - name: Tag Docker image
-        run: docker tag entrytracker:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: Tag Docker image
+      run: docker tag entrytracker:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       
-      - name: Push Docker image to ECR
-        run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
+    - name: Push Docker image to ECR
+      run: docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
 
 
   CD:
@@ -141,6 +154,7 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
+
 
     - name: Login to Amazon ECR
       id: login-ecr
