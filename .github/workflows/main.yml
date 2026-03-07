@@ -132,6 +132,7 @@ jobs:
       run: |
          echo "Pulling and tagging latest image from ECR"
          docker pull ${{ needs.Build_And_Push.outputs.image }}
+         echo "this is the last image -- ${{ needs.Build_And_Push.outputs.image }}" 
          echo "image_latest=${{ needs.Build_And_Push.outputs.image }}" >> $GITHUB_OUTPUT
 
     - name: Download current task definition
