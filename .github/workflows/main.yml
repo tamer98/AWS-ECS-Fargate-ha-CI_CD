@@ -127,9 +127,12 @@ jobs:
 
     - name: Pulling image from ECR
       id: pull-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ needs.Build_And_Push.outputs.image }}
       run: |
          echo "Pulling and tagging latest image from ECR"
-         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${{ needs.Build_And_Push.outputs.image }}
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
          echo "image_latest=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
