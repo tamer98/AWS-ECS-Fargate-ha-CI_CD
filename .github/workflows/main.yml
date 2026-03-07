@@ -20,21 +20,19 @@ env:
   ECS_TASK_DEFINITION: demo-application                                            
   CONTAINER_NAME: demo-container          
                                                
-
-permissions:
-  contents: read
-  
-  
 jobs:
-  CI:
+  Build_And_Push:
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+    
     steps:
     - name: Check out code and pull
       uses: actions/checkout@v2
 
-
-     
     - name: install dependencies and Build the application
       working-directory: ./app
       run: |
@@ -95,31 +93,25 @@ jobs:
          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
          aws-region: ${{ env.AWS_REGION }}
 
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
-
 
     - name: tag, and push image to Amazon ECR
       id: build-image #need to check it
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: v${{ github.run_number }}
+        IMAGE_TAG: ${{ github.sha }}
       run: | 
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
         docker tag my-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
         
 
-
-  CD:
-    needs: CI
+  Deploy_To_ECS:
+    needs: Build_And_Push
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
     - name: Checkout
@@ -132,7 +124,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -142,17 +133,18 @@ jobs:
       id: pull-image
       run: |
          echo "Pulling and tagging latest image from ECR"
-         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-              
+         docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${{ needs.Build_And_Push.outputs.image }}
+         echo "image_latest=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
     - name: Download current task definition
       run: |
         aws ecs describe-task-definition \
-          --task-definition demo-application \
-          --query taskDefinition > task-definition.json
-
+          --task-definition $ECS_TASK_DEFINITION \
+          --query taskDefinition \
+          --region $AWS_REGION \
+          --output json > task-definition.json 
+          
   
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
@@ -160,7 +152,7 @@ jobs:
       with:
         task-definition: task-definition.json
         container-name: ${{ env.CONTAINER_NAME }}
-        image: ${{ steps.pull-image.outputs.image }}
+        image: ${{ steps.pull-image.outputs.image_latest }}
 
 
     - name: Deploy Amazon ECS task definition
@@ -170,4 +162,4 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
-
+        
