@@ -32,8 +32,7 @@ jobs:
     - name: install dependencies and Build the application
       working-directory: ./app
       run: |
-         echo "installing app dependencies"
-         npm install -g http-server
+         echo "starting http server"
          npx http-server -p 8080 &
 
     - name: wait for server to be upload
