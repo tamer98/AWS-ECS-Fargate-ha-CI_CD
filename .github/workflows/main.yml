@@ -132,8 +132,8 @@ jobs:
       id: pull-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE: ${{ needs.Build_And_Push.outputs.image }}
       run: |
+         IMAGE=${{ needs.Build_And_Push.outputs.image }}
          echo "Pulling and tagging latest image from ECR"
          docker pull $IMAGE
          echo "this is the last image -- $IMAGE" 
