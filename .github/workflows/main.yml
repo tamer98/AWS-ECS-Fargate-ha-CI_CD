@@ -34,7 +34,7 @@ jobs:
       run: |
          echo "installing app dependencies"
          npm install -g http-server
-         npx http-server &
+         npx http-server -p 8080 &
 
     - name: wait for server to be upload
       run: sleep 5
