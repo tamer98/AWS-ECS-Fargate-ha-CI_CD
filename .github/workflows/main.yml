@@ -29,24 +29,24 @@ jobs:
     - name: Check out code and pull
       uses: actions/checkout@v2
 
-    # - name: install dependencies and Build the application
-    #   working-directory: ./app
-    #   run: |
-    #      echo "installing app dependencies"
-    #      npm install -g http-server
-    #      npx http-server &
+    - name: install dependencies and Build the application
+      working-directory: ./app
+      run: |
+         echo "installing app dependencies"
+         npm install -g http-server
+         npx http-server &
 
-    # - name: wait for server to be upload
-    #   run: sleep 5
+    - name: wait for server to be upload
+      run: sleep 5
 
 
-    # - name: Run tests
-    #   run: |
-    #      echo "testing app"
-    #      curl http://localhost:8080
+    - name: Run tests
+      run: |
+         echo "testing app"
+         curl http://localhost:8080
 
-    # - name: Stop application
-    #   run: kill -9 $(lsof -t -i :8080)
+    - name: Stop application
+      run: kill -9 $(lsof -t -i :8080)
 
 
     - name: Build Docker image
@@ -100,11 +100,8 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: | 
          docker tag my-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-          # docker tag my-app:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
         
 
   Deploy_To_ECS:
@@ -132,27 +129,19 @@ jobs:
       id: pull-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE: ${{ needs.Build_And_Push.outputs.image }}
       run: |
-          IMAGE=${{ needs.Build_And_Push.outputs.image }}
-          docker pull $IMAGE
-          echo "image_latest=$IMAGE" >> $GITHUB_OUTPUT
-          
-         # IMAGE=${{ needs.Build_And_Push.outputs.image }}
-         # echo "Pulling and tagging latest image from ECR"
-         # docker pull $IMAGE
-         # echo "this is the last image -- $IMAGE" 
-         # echo "image_latest=$IMAGE" >> $GITHUB_OUTPUT
-         # IMAGE_TAG=${{ needs.Build_And_Push.outputs.image }}
-         # docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         # echo "image_latest=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+         echo "Pulling latest image from ECR"
+         docker pull $IMAGE
 
+  
     - name: Download current task definition
       run: |
         aws ecs describe-task-definition \
-          --task-definition $ECS_TASK_DEFINITION \
-          --query taskDefinition \
-          --region $AWS_REGION \
-          --output json > task-definition.json 
+        --task-definition $ECS_TASK_DEFINITION \
+        --query taskDefinition \
+        --region $AWS_REGION \
+        --output json > task-definition.json 
           
   
     - name: Fill in the new image ID in the Amazon ECS task definition
