@@ -1,8 +1,8 @@
 # AWS-ECS-Fargate-ha-CI_CD
 
-<!-- 
-> [SHORT_PROJECT_DESCRIPTION] - One or two sentences explaining what this project demonstrates.
--->
+
+> A highly available containerized application deployed on Amazon ECS with AWS Fargate, provisioned using Terraform and automatically deployed through a CI/CD pipeline with GitHub Actions, including monitoring with Grafana and container images stored in Amazon ECR.
+
 
 
 ## Table of Contents
@@ -10,32 +10,46 @@
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
-- [Repository Structure](#repository-structure)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [CI/CD Pipeline](#cicd-pipeline)
-- [Acknowledgments](#acknowledgments)
+- [References](#references)
 
 
 
-<!--
+
 ## Overview
 
-Brief description of the project, its purpose, and what DevOps practices it demonstrates.
+This project demonstrates deploying a containerized application on Amazon ECS using Terraform for infrastructure provisioning and GitHub Actions for automated deployments. The application runs on AWS Fargate and includes two ECS services: one for the application and another for Grafana. Both services are exposed through an Application Load Balancer with separate routing paths. Container images are stored in Amazon Elastic Container Registry (ECR), demonstrating core DevOps practices such as Infrastructure as Code, containerization, monitoring, and CI/CD automation.
 
-Key features:
 
-- [FEATURE_1]
-- [FEATURE_2]
-- [FEATURE_3]
--->
+## Key Features
+
+- Cloud-based infrastructure (AWS with Terraform)
+- Multi-AZ deployment across two availability zones
+- High availability with multiple ECS tasks and load balancing
+- Secure network segmentation:
+  - Public subnets for load balancing and NAT gateways
+  - Private subnets for application containers
+- Monitoring and observability with Grafana and Amazon CloudWatch
+- CI/CD automation via GitHub Actions
+- Containerization using Docker & ECR
+- Deployment on Amazon ECS with AWS Fargate
+
 
 ## Architecture
 
+**AWS infrastructure architecture Diagram**
+
 <img width="601" height="601" alt="Untitled Diagram drawio-3" src="https://github.com/user-attachments/assets/151fe0f4-a282-4331-b36d-94b72da80cfc" />
 
+-----------------------------------
 
-![Architecture Diagram](images/architecture_diagram.png)
+**Comprehensive diagram**
+
+<img width="1451" height="891" alt="Full P3 drawio" src="https://github.com/user-attachments/assets/41baa6e5-50c6-42a0-8f4a-47d3f908e1ef" />
+
+
 
 ## Technology Stack
 
@@ -44,146 +58,124 @@ Key features:
 | **Infrastructure**   | Terraform |
 | **Containerization** | Docker, ECS Fargate |
 | **CI/CD**            | Github Actions |
+| **Version Control**  |    GitHub  |
 | **Application**      | Java Script, HTML, CSS |
 | **Cloud**         | AWS |
 | **Monitoring**         | Grafana |
 
-<!--
-## Repository Structure
 
 
-```
-project-root/
-├── [DIRECTORY_1]/       # [DESCRIPTION]
-│   ├── [FILE_1]         # [DESCRIPTION]
-│   └── [FILE_2]         # [DESCRIPTION]
-├── [DIRECTORY_2]/       # [DESCRIPTION]
-│   ├── [SUBDIRECTORY_1]/# [DESCRIPTION]
-│   └── [SUBDIRECTORY_2]/# [DESCRIPTION]
-└── [FILE_3]             # [DESCRIPTION]
-```
--->
-
-<!--
 ## Prerequisites
 
 Requirements for building and running the project:
 
-- [PREREQUISITE_1]
-- [PREREQUISITE_2]
-- [PREREQUISITE_3]
+- AWS CLI configured
+- Terraform installed
+- Docker installed
 
 ## Getting Started
 
-Follow these instructions to set up the project locally and deploy it to your cloud environment.
 
 ### Infrastructure Setup
 
-1. **[STEP_1_TITLE]**
+1. **Initialize Terraform & Configure AWS:**
 
 ```bash
-# [STEP_1_COMMAND_EXAMPLE]
-cd [DIRECTORY]
-[COMMAND_1]
+aws configure
+# set your Access Key & Secret Key or use AWS IAM 
+terraform init
+terraform plan
+terraform apply
+# make sure to shoutdown Infrastructure when finish with :
+terraform destroy
 ```
 
-2. **[STEP_2_TITLE]**
+
+### Grafana Setup
+
+1. **Add CloudWatch as a Data Source**
+
+Find out the application via ALB DNS output from terraform terminal :
+<br>
+
+> "http://ALB-DNS/grafana/login"
+
+
+<br>
+<img width="1219" height="146" alt="Screenshot 2026-03-12 at 16 55 08" src="https://github.com/user-attachments/assets/225e9cb5-aede-43b1-b1d6-3dce7694bc99" />
+
+<br>
+<br>
 
 ```bash
-# [STEP_2_COMMAND_EXAMPLE]
-[COMMAND_2]
+Once logged in:
+- Go to Connections
+- Click Add new connection
+- Choose CloudWatch
 ```
 
-Expected output:
-
-```
-[EXPECTED_OUTPUT_EXAMPLE]
-```
-
-3. **[STEP_3_TITLE]**
+2. **Configure CloudWatch Access**
 
 ```bash
-[COMMAND_3]
+In the CloudWatch data source settings:
+- Name: (Give it any name)
+- Authentication Provider: Choose from:
+- Access and Secret Key (simplest way)
+- AWS region: Choose where ECS hosted
+
+Once configured, click Save and Test,
+You should see a success message.
 ```
 
-### Application Deployment
+> **If using access & secret key, ensure the IAM user has CloudWatchReadOnlyAccess or a similar policy attached.**
 
-1. **[STEP_1_TITLE]**
+
+3. **Explore Your Logs**
 
 ```bash
-[COMMAND_1]
+After the data source is connected:
+- Click Explore from the left menu
+- In the data source selector, choose CloudWatch
+
+You will see two options:
+- CloudWatch Metrics — CPU, memory, and other metrics
+- CloudWatch Logs — actual log entries
+Select the CloudWatch Logs option.
+
+Then:
+Choose the Log Group from the dropdown
 ```
 
-2. **[STEP_2_TITLE]**
+4. **Run queries**
 
 ```bash
-[COMMAND_2]
+Examples:
+- fields @timestamp, @message | sort @timestamp desc | limit 20
+- fields @timestamp, @message | filter @message like /error/ | sort @timestamp desc | limit 20
+- fields @timestamp, @message | filter @message like /500|error|exception/ | sort @timestamp desc | limit 50
 ```
 
-3. **[STEP_3_TITLE]**
 
-```bash
-[COMMAND_3]
-```
 
-Expected result: [EXPECTED_RESULT_DESCRIPTION]
+<img width="1239" height="705" alt="Screenshot 2026-03-12 at 16 57 20" src="https://github.com/user-attachments/assets/23e5375c-51a0-4975-9d8d-429cf57aadcc" />
+
+<img width="1239" height="705" alt="Screenshot 2026-03-12 at 16 57 11" src="https://github.com/user-attachments/assets/d23f293d-8055-45c1-8955-1ce9d5498ce2" />
+
 
 ## CI/CD Pipeline
 
-[PIPELINE_DESCRIPTION]
+**PIPELINE DESCRIPTION**
 
 ```mermaid
 graph LR
-    A[Stage 1] --> B[Stage 2]
-    B --> C[Stage 3]
-    C --> D[Stage 4]
-    D --> E[Stage 5]
+    Clone/Pull --> Build_Application
+    Build_Application --> Unit_Testing
+    Unit_Testing  --> Package_Application
+    Package_Application --> End_to_End_Tests
+    End_to_End_Tests --> Publish_Image_to_ECR
+    Publish_Image_to_ECR --> Update_ECS_Deployment_running_environment
 ```
 
-## Contributing
+## References
 
-(For open source projects)
-
-[CONTRIBUTION_GUIDELINES]
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/[FEATURE_NAME]`)
-3. Commit your changes (`git commit -m '[DESCRIPTIVE_MESSAGE]'`)
-4. Push to the branch (`git push origin feature/[FEATURE_NAME]`)
-5. Open a Pull Request
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
-## Release History
-
-- 0.2.1
-  - CHANGE:
-- 0.2.0
-  - CHANGE:
-  - ADD:
-- 0.1.1
-  - FIX:
-- 0.1.0
-  - First real release
-  - CHANGE:
-- 0.0.1
-  - Initial Version
-
-## Contact
-
-[YOUR_NAME] - LinkedIn - [EMAIL]
-
-Project Link: [https://github.com/[USERNAME]/[REPOSITORY]](https://github.com/[USERNAME]/[REPOSITORY])
-
-## Acknowledgments
-
-- [ACKNOWLEDGMENT_1]
-- [ACKNOWLEDGMENT_2]
-- [ACKNOWLEDGMENT_3]
-
--->
-
-
-
-# AWS-ECS-Fargate-ha-CI_CD
-<img width="601" height="601" alt="p3 drawio" src="https://github.com/user-attachments/assets/9bcdacb1-036f-4f3a-930a-92c733f6b2b4" />
+- [Grafana Setup](https://medium.com/@karthikthangaraj123/how-to-fetch-aws-ecs-application-logs-from-cloudwatch-into-grafana-dashboard-67ccbd062ed8)
