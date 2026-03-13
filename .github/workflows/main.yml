@@ -13,20 +13,22 @@ env:
   ECS_CLUSTER: demo-cluster                
   ECS_TASK_DEFINITION: demo-application                                            
   CONTAINER_NAME: demo-container
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
                                                
 jobs:
   Build_And_Push:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    env:
+       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     
     outputs:
       image: ${{ steps.build-image.outputs.image }}
     
     steps:
     - name: Check out code and pull
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: install dependencies and Build the application
       working-directory: ./app
@@ -106,6 +108,9 @@ jobs:
     needs: Build_And_Push
     name: Deploy
     runs-on: ubuntu-latest
+    env:
+       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+       
 
     steps:
     - name: Checkout
