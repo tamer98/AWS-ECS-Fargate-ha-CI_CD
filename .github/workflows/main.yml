@@ -4,11 +4,6 @@ on:
   push:
     branches: 
       - main
-    paths-ignore:
-      - 'README.md'
-      - '.github/**'
-
-  workflow_dispatch:
      
 
 env:
@@ -36,7 +31,7 @@ jobs:
       working-directory: ./app
       run: |
          echo "starting http server"
-         npx http-server -p 8080 &
+         npx http-server -p 80 &
 
     - name: wait for server to be upload
       run: sleep 5
@@ -45,7 +40,7 @@ jobs:
     - name: Run tests
       run: |
          echo "testing app"
-         curl http://localhost:8080
+         curl http://localhost:80
 
     - name: Stop application
       run: kill -9 $(lsof -t -i :8080)
@@ -147,7 +142,7 @@ jobs:
         --output json > task-definition.json 
           
   
-    - name: Fill in the new image ID in the Amazon ECS task definition
+    - name: Fill in the new image ID into Amazon ECS task definition
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
