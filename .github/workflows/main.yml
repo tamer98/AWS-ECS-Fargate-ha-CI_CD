@@ -12,7 +12,8 @@ env:
   ECS_SERVICE: demo_service                 
   ECS_CLUSTER: demo-cluster                
   ECS_TASK_DEFINITION: demo-application                                            
-  CONTAINER_NAME: demo-container          
+  CONTAINER_NAME: demo-container
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
                                                
 jobs:
   Build_And_Push:
