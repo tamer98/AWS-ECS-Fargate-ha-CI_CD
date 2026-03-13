@@ -31,7 +31,7 @@ jobs:
       working-directory: ./app
       run: |
          echo "starting http server"
-         npx http-server -p 80 &
+         npx http-server -p 8080 &
 
     - name: wait for server to be upload
       run: sleep 5
@@ -40,10 +40,10 @@ jobs:
     - name: Run tests
       run: |
          echo "testing app"
-         curl http://localhost:80
+         curl http://localhost:8080
 
     - name: Stop application
-      run: kill -9 $(lsof -t -i :80)
+      run: kill -9 $(lsof -t -i :8080)
 
 
     - name: Build Docker image
