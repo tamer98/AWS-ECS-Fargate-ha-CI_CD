@@ -43,7 +43,7 @@ jobs:
          curl http://localhost:80
 
     - name: Stop application
-      run: kill -9 $(lsof -t -i :8080)
+      run: kill -9 $(lsof -t -i :80)
 
 
     - name: Build Docker image
