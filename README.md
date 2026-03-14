@@ -20,7 +20,10 @@
 
 ## Overview
 
-This project demonstrates deploying a containerized application on Amazon ECS using Terraform for infrastructure provisioning and GitHub Actions for automated deployments. The application runs on AWS Fargate and includes two ECS services: one for the application and another for Grafana. Both services are exposed through an Application Load Balancer with separate routing paths. Container images are stored in Amazon Elastic Container Registry (ECR), demonstrating core DevOps practices such as Infrastructure as Code, containerization, monitoring, and CI/CD automation.
+This project demonstrates deploying a containerized application on Amazon ECS using Terraform for infrastructure provisioning and GitHub Actions for automated deployments. 
+The application runs on AWS Fargate and includes two ECS services: one for the application and another for Grafana. 
+Both services are exposed through an Application Load Balancer with separate routing paths. 
+Container images are stored in Amazon Elastic Container Registry (ECR), demonstrating core DevOps practices such as Infrastructure as Code, containerization, monitoring, and CI/CD automation.
 
 
 ## Key Features
@@ -177,5 +180,5 @@ graph LR
 ```
 
 ## References
-
+- [Application Repository](https://github.com/tamer98/Memory_Cards_Game)
 - [Grafana Setup](https://medium.com/@karthikthangaraj123/how-to-fetch-aws-ecs-application-logs-from-cloudwatch-into-grafana-dashboard-67ccbd062ed8)
